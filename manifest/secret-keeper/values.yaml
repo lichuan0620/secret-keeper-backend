@@ -1,0 +1,97 @@
+platform:
+  imageRegistry: docker.io
+  imageRepository: lichuan0620
+  mongodb_address: mongodb://mongo-0.mongo.secret-keeper,mongo-1.mongo.secret-keeper,mongo-2.mongo.secret-keeper
+image:
+  name: secret-keeper
+  pullPolicy: Always
+server:
+  metadata:
+    labels: { }
+    annotations: { }
+    podLabels: { }
+    podAnnotations: { }
+  extraArgs: { }
+  replicas: 3
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: "1"
+      memory: 512Mi
+  affinity: { }
+  nodeSelector: { }
+  tolerations: [ ]
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  service:
+    type: ClusterIP
+    http:
+      port: 8080
+      nodePort:
+    telemetry:
+      port: 8081
+      nodePort:
+    clusterIP: ""
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    annotations: { }
+    labels: { }
+queue:
+  metadata:
+    labels: { }
+    annotations: { }
+    podLabels: { }
+    podAnnotations: { }
+  extraArgs: { }
+  replicas: 1
+  resources:
+    limits:
+      cpu: "1"
+      memory: 4Gi
+    requests:
+      cpu: "1"
+      memory: 2Gi
+  affinity: { }
+  nodeSelector: { }
+  tolerations: [ ]
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  service:
+    type: ClusterIP
+    http:
+      port: 8080
+      nodePort:
+    telemetry:
+      port: 8081
+      nodePort:
+    clusterIP: ""
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    annotations: { }
+    labels: { }

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "queue.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "queue.labels" . | nindent 4 }}
+  {{- if (include "queue.annotations" .) }}
+  annotations: {{- include "queue.annotations" . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.queue.replicas }}
+  selector:
+    matchLabels: {{ include "queue.matchLabels" . | nindent 6}}
+  serviceName: {{ template "queue.name" . }}
+  template:
+    metadata:
+      labels: {{- include "queue.podLabels" . | nindent 8 }}
+      {{- if (include "queue.podAnnotations" .) -}}
+      annotations: {{- include "queue.podAnnotations" . | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+        - name: queue
+          image: {{ include "common.image" . }}
+          imagePullPolicy: {{ default "Always" .Values.image.pullPolicy }}
+          args:
+            - queue
+            - --mongodb-endpoint={{ .Values.platform.mongodb_address }}
+          {{- range $key, $value := .Values.queue.extraArgs }}
+            {{- if $value }}
+            - {{ $key }}={{ $value }}
+            {{- else }}
+            - {{ $key }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8081
+              name: telemetry
+              protocol: TCP
+          resources: {{- toYaml .Values.queue.resources | nindent 12 }}
+          {{- if .Values.queue.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: telemetry
+            initialDelaySeconds: {{ .Values.queue.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.queue.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.queue.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.queue.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.queue.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.queue.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: telemetry
+            initialDelaySeconds: {{ .Values.queue.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.queue.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.queue.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.queue.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.queue.readinessProbe.failureThreshold }}
+          {{- end }}
+      {{- if .Values.queue.affinity }}
+      affinity: {{- toYaml .Values.queue.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.queue.nodeSelector }}
+      nodeSelector: {{- toYaml .Values.queue.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.queue.tolerations }}
+      tolerations: {{- toYaml .Values.queue.tolerations | nindent 8 }}
+      {{- end }}

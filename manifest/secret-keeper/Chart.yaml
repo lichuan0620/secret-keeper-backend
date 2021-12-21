@@ -1,0 +1,6 @@
+apiVersion: v2
+name: secret-keeper
+description: backend components for secret-keeper, a contest entry project for Bytedance C-P Team Hackathon.
+type: application
+appVersion: v0.1.0
+version: 0.1.0

@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "queue.name" . }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+  {{- with .Values.queue.service.annotations }}
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (include "queue.annotations" .) }}
+  {{- toYaml (include "queue.annotations" .) | nindent 4 }}
+  {{- end }}
+  labels: {{- include "queue.labels" . | nindent 4 }}
+  {{- if .Values.queue.service.labels }}
+  {{ toYaml .Values.queue.service.labels | indent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.queue.service.type }}
+  {{- if and .Values.queue.service.loadBalancerIP (eq .Values.queue.service.type "LoadBalancer") }}
+  loadBalancerIP: {{ .Values.queue.service.loadBalancerIP }}
+  {{- end }}
+  {{- if and (eq .Values.queue.service.type "LoadBalancer") .Values.queue.service.loadBalancerSourceRanges }}
+  {{- with .Values.queue.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  {{- if and (eq .Values.queue.service.type "ClusterIP") .Values.queue.service.clusterIP }}
+  clusterIP: {{ .Values.queue.service.clusterIP }}
+  {{- end }}
+  ports:
+    - name: http
+      port: {{ .Values.queue.service.http.port }}
+      targetPort: http
+      {{- if and .Values.queue.service.http.nodePort (or (eq .Values.queue.service.type "NodePort") (eq .Values.queue.service.type "LoadBalancer")) }}
+      nodePort: {{ .Values.queue.service.http.nodePort }}
+    {{- end }}
+    - name: telemetry
+      port: {{ .Values.queue.service.telemetry.port }}
+      targetPort: telemetry
+      {{- if and .Values.queue.service.telemetry.nodePort (or (eq .Values.queue.service.type "NodePort") (eq .Values.queue.service.type "LoadBalancer")) }}
+      nodePort: {{ .Values.queue.service.telemetry.nodePort }}
+  {{- end }}
+  selector: {{- include "queue.matchLabels" . | nindent 4 }}
