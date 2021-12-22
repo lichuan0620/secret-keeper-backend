@@ -88,7 +88,7 @@ func (t *Type) Run(stopCh <-chan struct{}) {
 		resync = 15 * time.Minute
 		retry  = 10 * time.Second
 	)
-	resyncTimer := time.NewTicker(0)
+	resyncTimer := time.NewTimer(0)
 	defer resyncTimer.Stop()
 	for {
 		select {
