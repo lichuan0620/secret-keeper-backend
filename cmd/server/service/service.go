@@ -26,7 +26,10 @@ func Build(qc queueclient.Interface) (http.Handler, error) {
 		Actions: []servicemodel.Action{
 			buildStandardActionFromHandler(CreateBox),
 			buildStandardActionFromHandler(AddBoxEmoji),
-			buildStandardActionFromHandler(ViewBox),
+			{
+				Name:    "ViewBox",
+				Handler: ViewBox,
+			},
 		},
 	}).Build()
 }
