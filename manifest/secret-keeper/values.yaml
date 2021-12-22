@@ -1,6 +1,6 @@
 platform:
-  imageRegistry: docker.io
-  imageRepository: lichuan0620
+  imageRegistry: cr-cn-beijing.volces.com
+  imageRepository: sailor-moon
   mongodb_address: mongodb://mongo-0.mongo.secret-keeper,mongo-1.mongo.secret-keeper,mongo-2.mongo.secret-keeper
 image:
   name: secret-keeper

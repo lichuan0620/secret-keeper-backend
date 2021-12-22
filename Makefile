@@ -14,7 +14,7 @@
 NAME := secret-keeper
 
 # Container registries.
-REGISTRY ?= lichuan0620
+REGISTRY ?= cr-cn-beijing.volces.com/sailor-moon
 
 # Project output directory.
 OUTPUT_DIR := ./bin
