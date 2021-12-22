@@ -1,5 +1,7 @@
 FROM golang:1.16-stretch as builder
 
+ENV GOPROXY "https://goproxy.cn,direct"
+
 COPY . /go/src/github.com/lichuan0620/secret-keeper-backend
 
 WORKDIR /go/src/github.com/lichuan0620/secret-keeper-backend
