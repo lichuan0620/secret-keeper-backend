@@ -25,6 +25,7 @@ spec:
           imagePullPolicy: {{ default "Always" .Values.image.pullPolicy }}
           args:
             - queue
+            - -v={{ .Values.platform.logVerbosity }}
             - --mongodb-endpoint={{ .Values.platform.mongodb_address }}
           {{- range $key, $value := .Values.queue.extraArgs }}
             {{- if $value }}

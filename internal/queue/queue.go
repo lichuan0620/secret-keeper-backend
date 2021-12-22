@@ -67,16 +67,17 @@ func (t *Type) Dequeue() (string, error) {
 	} else {
 		i = count - 1 - rand.Intn(randomFactor)
 	}
+	id := t.items[i].Id
 	now := time.Now().In(location)
-	if err := mongo.DB().C(mongo.CollectionBox).UpdateId(t.items[i].Id, bson.M{
-		"$push":      bson.M{"Viewed": now},
-		"LastViewed": now,
-	}); err != nil {
+	if err := mongo.DB().C(mongo.CollectionBox).UpdateId(
+		id,
+		bson.M{"$set": bson.M{"LastViewed": now}},
+	); err != nil {
 		return "", errors.Wrap(err, "update view record")
 	}
 	t.items[i].Score = now.UnixNano()
 	sort.Sort(t.items)
-	return t.items[i].Id, nil
+	return id, nil
 }
 
 func (t *Type) Ready() bool {

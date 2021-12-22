@@ -24,18 +24,16 @@ func RequestLog(logger logr.Logger) model.Middleware {
 		start := time.Now()
 		f(ctx)
 		info := service.GetHandlingInfo(ctx)
-		httoStatusCode := http.StatusOK
+		httpStatusCode := http.StatusOK
 		logger = logger.V(log.LevelDefault)
 		if info.Error != nil {
 			logger = logger.WithValues("error_code", info.Error.GetCode()).V(log.LevelWarning)
-			httoStatusCode = int(info.Error.GetHTTPCode())
+			httpStatusCode = int(info.Error.GetHTTPCode())
 		}
 		logger.WithValues(
 			"action", info.Action,
 			"version", info.Version,
-			"request_id", info.RequestID,
-			"account_id", info.AccountID,
-			"http_status_code", httoStatusCode,
+			"http_status_code", httpStatusCode,
 			"duration_seconds", time.Since(start).Seconds(),
 		).Info("request handled")
 	}

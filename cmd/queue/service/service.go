@@ -14,7 +14,10 @@ import (
 func Build(q queue.Interface) (http.Handler, error) {
 	logger := log.New().WithName("handlers")
 	return (&service.Builder{
-		GlobalMiddlewares: []servicemodel.Middleware{middlewares.WithLogger(logger)},
+		GlobalMiddlewares: []servicemodel.Middleware{
+			middlewares.WithLogger(logger),
+			middlewares.RequestLog(logger),
+		},
 	}).AddActionGroup(servicemodel.ActionGroup{
 		Mutator: func(action *servicemodel.Action) {
 			action.Version = models.Version

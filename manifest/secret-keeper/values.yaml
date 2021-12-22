@@ -2,6 +2,7 @@ platform:
   imageRegistry: cr-cn-beijing.volces.com
   imageRepository: sailor-moon
   mongodb_address: mongodb://mongo-0.mongo.sailor-moon,mongo-1.mongo.sailor-moon,mongo-2.mongo.sailor-moon/?replicaSet=rs0
+  logVerbosity: 1
 image:
   name: secret-keeper-backend
   pullPolicy: Always
@@ -42,10 +43,10 @@ server:
     failureThreshold: 3
     successThreshold: 1
   service:
-    type: ClusterIP
+    type: NodePort
     http:
       port: 8080
-      nodePort:
+      nodePort: 30080
     telemetry:
       port: 8081
       nodePort:
@@ -54,6 +55,10 @@ server:
     loadBalancerSourceRanges: []
     annotations: { }
     labels: { }
+  ingress:
+    enabled: true
+    host: api.lichuan.guru
+    class: nginx
 queue:
   metadata:
     labels: { }

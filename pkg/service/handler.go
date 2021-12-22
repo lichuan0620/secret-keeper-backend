@@ -126,7 +126,8 @@ func (exec *actionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		// parse parameters
 		paramValues, err := exec.parseParameters(req)
 		if err != nil {
-			writeError(req.Context(), w, response, err)
+			writeError(w, response, err)
+			req.WithContext(context.WithValue(req.Context(), contextKeyError, err))
 			return
 		}
 		paramValues[0] = reflect.ValueOf(ctx)
@@ -135,7 +136,8 @@ func (exec *actionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if out := exec.handler.Call(paramValues); out[1].IsNil() {
 			writeSuccess(w, response, out[0].Interface())
 		} else {
-			writeError(req.Context(), w, response, out[1].Interface().(standard.Error))
+			writeError(w, response, out[1].Interface().(standard.Error))
+			req.WithContext(context.WithValue(req.Context(), contextKeyError, err))
 		}
 	})
 }

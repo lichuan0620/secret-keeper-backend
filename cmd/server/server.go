@@ -9,7 +9,9 @@ import (
 	"github.com/lichuan0620/secret-keeper-backend/cmd/server/service"
 	"github.com/lichuan0620/secret-keeper-backend/internal/queueclient"
 	"github.com/lichuan0620/secret-keeper-backend/pkg/mongo"
+	"github.com/lichuan0620/secret-keeper-backend/pkg/network"
 	"github.com/lichuan0620/secret-keeper-backend/pkg/telemetry"
+	"github.com/lichuan0620/secret-keeper-backend/pkg/telemetry/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -37,7 +39,11 @@ func Command(ctx context.Context) *cobra.Command {
 		if err := mongo.Init(MongoEndpoint); err != nil {
 			return errors.Wrap(err, "initialize MongoDB connection")
 		}
-		qc := queueclient.New(QueueEndpoint)
+		url, err := network.ParseEndpoint(QueueEndpoint, "http")
+		if err != nil {
+			return errors.Wrap(err, "invalid queue endpoint")
+		}
+		qc := queueclient.New(url.String())
 		handler, err := service.Build(qc)
 		if err != nil {
 			return errors.Wrap(err, "build service handler")
@@ -68,6 +74,7 @@ func Command(ctx context.Context) *cobra.Command {
 			defer cancel()
 			return errors.Wrap(server.Shutdown(gracefulCtx), "HTTP server graceful shutdown")
 		})
+		log.New().Info(component + " running")
 		return eg.Wait()
 	}
 	return &cmd

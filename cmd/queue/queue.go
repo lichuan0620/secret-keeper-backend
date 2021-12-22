@@ -10,6 +10,7 @@ import (
 	"github.com/lichuan0620/secret-keeper-backend/internal/queue"
 	"github.com/lichuan0620/secret-keeper-backend/pkg/mongo"
 	"github.com/lichuan0620/secret-keeper-backend/pkg/telemetry"
+	"github.com/lichuan0620/secret-keeper-backend/pkg/telemetry/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -76,6 +77,7 @@ func Command(ctx context.Context) *cobra.Command {
 			defer cancel()
 			return errors.Wrap(server.Shutdown(gracefulCtx), "HTTP server graceful shutdown")
 		})
+		log.New().Info(component + " running")
 		return eg.Wait()
 	}
 	return &cmd

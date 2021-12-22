@@ -11,7 +11,6 @@ type Box struct {
 	CreatedAt      *time.Time      `json:"CreatedAt,omitempty" bson:"CreatedAt,omitempty"`
 	Body           string          `json:"Body,omitempty" bson:"Body,omitempty"`
 	EmojiFeedbacks map[string]uint `json:"EmojiFeedbacks,omitempty" bson:"EmojiFeedbacks,omitempty"`
-	Viewed         []time.Time     `json:"Viewed,omitempty" bson:"Viewed,omitempty"`
 	LastViewed     *time.Time      `json:"LastViewed,omitempty" bson:"LastViewed,omitempty"`
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/lichuan0620/secret-keeper-backend/cmd/server"
 	"github.com/lichuan0620/secret-keeper-backend/pkg/signal"
 	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
 )
 
 var command *cobra.Command
@@ -22,6 +23,7 @@ func main() {
 		queue.Command(ctx),
 		server.Command(ctx),
 	)
+	klog.InitFlags(flag.CommandLine)
 	flags := command.PersistentFlags()
 	flags.AddGoFlagSet(flag.CommandLine)
 	if command.Execute() != nil {

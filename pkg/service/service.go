@@ -13,7 +13,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-var contextKeyQueryValue interface{} = new(byte)
+var (
+	contextKeyQueryValue interface{} = new(byte)
+	contextKeyAction     interface{} = new(byte)
+	contextKeyVersion    interface{} = new(byte)
+	contextKeyError      interface{} = new(byte)
+)
 
 // GetQueryValues return query values parsed from the given context. When using the http.Handler built
 // from this package, the query values are parsed when the request was first received.
@@ -28,27 +33,21 @@ func GetQueryValues(ctx context.Context) url.Values {
 // GetHandlingInfo returns information about the handling of a request. Some information is only available
 // after the handler has returned (so only middlewares can use them).
 func GetHandlingInfo(ctx context.Context) HandlingInfo {
-	aCtx := ctx.(*actionContext)
-	return HandlingInfo{
-		Error:   aCtx.Error,
-		Action:  aCtx.Action,
-		Version: aCtx.Version,
+	ret := HandlingInfo{
+		Action:  ctx.Value(contextKeyAction).(string),
+		Version: ctx.Value(contextKeyVersion).(string),
 	}
+	if err := ctx.Value(contextKeyError); err != nil {
+		if stdErr, ok := err.(standard.Error); ok {
+			ret.Error = stdErr
+		}
+	}
+	return ret
 }
 
 // HandlingInfo contains information about the handling of a request.
 type HandlingInfo struct {
 	Error           standard.Error
-	RequestID       string
-	AccountID       string
-	Action, Version string
-}
-
-type actionContext struct {
-	context.Context
-	Error           standard.Error
-	RequestID       string
-	AccountID       string
 	Action, Version string
 }
 
@@ -99,18 +98,18 @@ func (builder *Builder) Build() (http.Handler, error) {
 		}
 		action := parse(model.QueryParameterAction)
 		version := parse(model.QueryParameterVersion)
+		reqCtx := req.Context()
+		reqCtx = context.WithValue(reqCtx, contextKeyQueryValue, queryValues)
+		reqCtx = context.WithValue(reqCtx, contextKeyAction, action)
+		reqCtx = context.WithValue(reqCtx, contextKeyVersion, version)
 		globalMiddleware.execute(
-			&actionContext{
-				Context: context.WithValue(req.Context(), contextKeyQueryValue, queryValues),
-				Action:  action,
-				Version: version,
-			},
+			reqCtx,
 			func(ctx context.Context) {
 				handler, exists := handlers[indexAction(action, version)]
 				if exists {
 					handler.ServeHTTP(w, req.WithContext(ctx))
 				} else {
-					writeError(ctx, w, &model.Response{
+					writeError(w, &model.Response{
 						Metadata: model.ResponseMetadata{
 							Action:  action,
 							Version: version,
@@ -166,10 +165,9 @@ func indexAction(action, version string) uint64 {
 	return h.Sum64()
 }
 
-func writeError(ctx context.Context, w http.ResponseWriter, resp *model.Response, err standard.Error) {
+func writeError(w http.ResponseWriter, resp *model.Response, err standard.Error) {
 	w.Header().Set(model.HeaderContentType, model.ContentTypeJSON)
 	w.WriteHeader(int(err.GetHTTPCode()))
-	ctx.(*actionContext).Error = err
 	resp.Result = nil
 	if resp.Error == nil {
 		resp.Error = new(model.Error)

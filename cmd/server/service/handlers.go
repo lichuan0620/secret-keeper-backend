@@ -21,6 +21,9 @@ func init() {
 
 func CreateBox(ctx context.Context, req *models.CreateBoxRequest) (*models.CreateBoxResponse, standard.Error) {
 	logger := log.FromContext(ctx)
+	if req.Body == "" {
+		return nil, standard.InvalidParameter("Body")
+	}
 	db := mongo.DB()
 	defer db.Session.Close()
 	now := time.Now().In(location)
@@ -28,7 +31,6 @@ func CreateBox(ctx context.Context, req *models.CreateBoxRequest) (*models.Creat
 		Id:         uuid.New().String(),
 		CreatedAt:  &now,
 		Body:       req.Body,
-		Viewed:     []time.Time{now},
 		LastViewed: &now,
 	}
 	if err := db.C(mongo.CollectionBox).Insert(&box); err != nil {
@@ -87,7 +89,7 @@ func ViewBox(ctx context.Context) (*models.ViewBoxResponse, standard.Error) {
 	defer db.Session.Close()
 	var box models.Box
 	if err = db.C(mongo.CollectionBox).FindId(resp.Id).One(&box); err != nil {
-		log.FromContext(ctx).Error(err, "unexpected database error")
+		log.FromContext(ctx).Error(err, "unexpected database error", "id", resp.Id)
 		return nil, standard.InternalServiceError()
 	}
 	return (*models.ViewBoxResponse)(&box), nil

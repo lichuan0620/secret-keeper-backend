@@ -14,6 +14,7 @@ require (
 	github.com/prometheus/common v0.28.0 // indirect
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.6-0.20200504143853-81378bbcd8a1 // indirect
+	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	k8s.io/apimachinery v0.23.0
 	k8s.io/klog/v2 v2.40.1
