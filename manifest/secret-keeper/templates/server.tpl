@@ -3,7 +3,7 @@
 {{- end -}}
 
 {{- define "server.labels" -}}
-app: raven-server
+app: secret-keeper-server
 {{- if .Values.server.metadata.labels }}
 {{- toYaml .Values.server.metadata.labels }}
 {{- end }}

@@ -20,7 +20,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- define "common.image" -}}
 {{- $repositoryName := .Values.platform.imageRepository -}}
 {{- $imageName := .Values.image.name -}}
-{{- $tag := .Chart.AppVersion | toString -}}
+{{- $tag := (default .Chart.AppVersion .Values.image.tag) | toString -}}
 {{- if .Values.platform.imageRegistry -}}
     {{- $registryName := .Values.platform.imageRegistry -}}
     {{- printf "%s/%s/%s:%s" $registryName $repositoryName $imageName $tag -}}

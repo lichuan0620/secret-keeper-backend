@@ -14,9 +14,9 @@ spec:
   template:
     metadata:
       labels: {{- include "server.podLabels" . | nindent 8 }}
-      {{- if (include "server.podAnnotations" .) -}}
+      {{- if (include "server.podAnnotations" .) }}
       annotations: {{- include "server.podAnnotations" . | nindent 8 }}
-    {{- end }}
+      {{- end }}
     spec:
       containers:
         - name: server

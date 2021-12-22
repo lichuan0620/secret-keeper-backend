@@ -3,7 +3,7 @@
 {{- end -}}
 
 {{- define "queue.labels" -}}
-app: raven-queue
+app: secret-keeper-queue
 {{- if .Values.queue.metadata.labels }}
 {{- toYaml .Values.queue.metadata.labels }}
 {{- end }}

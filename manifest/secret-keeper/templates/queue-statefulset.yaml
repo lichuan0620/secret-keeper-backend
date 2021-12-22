@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       labels: {{- include "queue.podLabels" . | nindent 8 }}
-      {{- if (include "queue.podAnnotations" .) -}}
+      {{- if (include "queue.podAnnotations" .) }}
       annotations: {{- include "queue.podAnnotations" . | nindent 8 }}
       {{- end }}
     spec:
