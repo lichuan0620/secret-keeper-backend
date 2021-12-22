@@ -1,16 +1,20 @@
 platform:
   imageRegistry: cr-cn-beijing.volces.com
   imageRepository: sailor-moon
-  mongodb_address: mongodb://mongo-0.mongo.secret-keeper,mongo-1.mongo.secret-keeper,mongo-2.mongo.secret-keeper
+  mongodb_address: mongodb://mongo-0.mongo.sailor-moon,mongo-1.mongo.sailor-moon,mongo-2.mongo.sailor-moon/?replicaSet=rs0
 image:
-  name: secret-keeper
+  name: secret-keeper-backend
   pullPolicy: Always
+  tag: latest
 server:
   metadata:
     labels: { }
     annotations: { }
     podLabels: { }
-    podAnnotations: { }
+    podAnnotations:
+      prometheus.io/path: "/metrics"
+      prometheus.io/port: "8081"
+      prometheus.io/scrape: "true"
   extraArgs: { }
   replicas: 3
   resources:
@@ -55,7 +59,10 @@ queue:
     labels: { }
     annotations: { }
     podLabels: { }
-    podAnnotations: { }
+    podAnnotations:
+      prometheus.io/path: "/metrics"
+      prometheus.io/port: "8081"
+      prometheus.io/scrape: "true"
   extraArgs: { }
   replicas: 1
   resources:
