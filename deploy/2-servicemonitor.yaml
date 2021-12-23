@@ -1,0 +1,35 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: secret-keeper-queue
+  namespace: sailor-moon
+  labels:
+    app: secret-keeper-queue
+    app.kubernetes.io/instance: secret-keeper
+    app.kubernetes.io/name: secret-keeper
+spec:
+  selector:
+    matchLabels:
+      app: secret-keeper-queue
+      app.kubernetes.io/instance: secret-keeper
+      app.kubernetes.io/name: secret-keeper
+  endpoints:
+    - port: telemetry
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: secret-keeper-server
+  namespace: sailor-moon
+  labels:
+    app: secret-keeper-server
+    app.kubernetes.io/instance: secret-keeper
+    app.kubernetes.io/name: secret-keeper
+spec:
+  selector:
+    matchLabels:
+      app: secret-keeper-server
+      app.kubernetes.io/instance: secret-keeper
+      app.kubernetes.io/name: secret-keeper
+  endpoints:
+    - port: telemetry

@@ -1,0 +1,194 @@
+# Source: prometheus/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: monitoring
+---
+# Source: prometheus/templates/additional-config-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-additional-configs
+  namespace: monitoring
+type: Opaque
+stringData:
+  additional-scrape-configs.yaml: |-
+    - job_name: prometheus
+      static_configs:
+      - targets: ['localhost:9090']
+      metrics_path: /prometheus/metrics
+
+    - job_name: cadvisor
+      kubernetes_sd_configs:
+      - role: node
+      tls_config:
+        insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      metrics_path: /metrics/cadvisor
+      scheme: https
+
+    - job_name: kubelet
+      kubernetes_sd_configs:
+      - role: node
+      tls_config:
+        insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      scheme: https
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_node_name]
+        target_label: node
+      - source_labels: [__meta_kubernetes_node_address_internalIP]
+        target_label: host_ip
+
+    - job_name: node-exporter
+      kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+          - monitoring
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        regex: node-exporter
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+      - source_labels: [__meta_kubernetes_pod_host_ip]
+        target_label: host_ip
+
+    - job_name: kube-state-metrics
+      kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+          - monitoring
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        regex: kube-state-metrics
+        action: keep
+      - source_labels: [__meta_kubernetes_endpoint_port_name]
+        regex: http
+        action: keep
+---
+# Source: prometheus/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/metrics
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources:
+      - configmaps
+    verbs: ["get"]
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+# Source: prometheus/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: monitoring
+---
+# Source: prometheus/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  type: ClusterIP
+  ports:
+    - name: web
+      port: 9090
+      targetPort: web
+  selector:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: prometheus
+---
+# Source: prometheus/templates/prometheus.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  podMetadata:
+    labels:
+      app.kubernetes.io/name: prometheus
+      app.kubernetes.io/instance: prometheus
+  image: quay.io/prometheus/prometheus:v2.32.1
+  serviceMonitorSelector:
+    matchExpressions: []
+    matchLabels: {}
+  serviceMonitorNamespaceSelector:
+    matchExpressions: []
+    matchLabels: {}
+  ruleSelector:
+    matchExpressions: []
+    matchLabels: {}
+  ruleNamespaceSelector:
+    matchExpressions: []
+    matchLabels: {}
+  scrapeInterval: 15s
+  evaluationInterval: 15s
+  retention: 7d
+  retentionSize: 32GB
+  additionalScrapeConfigs:
+    key: additional-scrape-configs.yaml
+    name: prometheus-additional-configs
+    optional: true
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          limits:
+            storage: 64Gi
+          requests:
+            storage: 64Gi
+        storageClassName: ebs-ssd
+  securityContext:
+    runAsUser: 65534
+    runAsGroup: 65534
+    fsGroup: 65534
+  resources:
+    limits:
+      cpu: "1"
+      memory: 4Gi
+    requests:
+      cpu: "1"
+      memory: 2Gi
+  serviceAccountName: prometheus
+  externalUrl: https://hackathon.lichuan.guru/prometheus
+  routePrefix: /prometheus
+  containers:
+    - name: config-reloader
+      resources:
+        limits:
+          cpu: 100m
+          memory: 64Mi
+        requests:
+          cpu: 50m
+          memory: 32Mi
